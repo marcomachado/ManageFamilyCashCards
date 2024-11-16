@@ -1,18 +1,29 @@
 package com.familycashcard.cashcard;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
+@RequestMapping("/cashcards")
 public class CashCardController {
 
-    @GetMapping("/cashcards")
-    public List<CashCard> cashcards(){
-        return List.of(
-                new CashCard(1L, 11.2, "Mark"),
-                new CashCard(2L, 22.1, "Jimmy")
-        );
+    private CashCardRepository cashCardRepository;
+
+    public CashCardController(CashCardRepository cashCardRepository) {
+        this.cashCardRepository = cashCardRepository;
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<CashCard>> findAll(){
+        return ResponseEntity.ok(cashCardRepository.findAll());
+    }
+
+    @GetMapping("/{id}")
+    private ResponseEntity<CashCard> findById(@PathVariable Long id) {
+        Optional<CashCard> optCashCard = cashCardRepository.findById(id);
+        return optCashCard.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 }
