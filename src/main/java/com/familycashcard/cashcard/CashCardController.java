@@ -12,7 +12,7 @@ import java.util.Optional;
 @RequestMapping("/cashcards")
 public class CashCardController {
 
-    private CashCardRepository cashCardRepository;
+    private final CashCardRepository cashCardRepository;
 
     public CashCardController(CashCardRepository cashCardRepository) {
         this.cashCardRepository = cashCardRepository;
@@ -25,8 +25,12 @@ public class CashCardController {
 
     @GetMapping("/{id}")
     private ResponseEntity<CashCard> findById(@PathVariable Long id) {
-        Optional<CashCard> optCashCard = cashCardRepository.findById(id);
+        Optional<CashCard> optCashCard = getCashCardById(id);
         return optCashCard.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private Optional<CashCard> getCashCardById(Long id) {
+        return cashCardRepository.findById(id);
     }
 
     @GetMapping("/getcards/{owner}")
@@ -46,4 +50,29 @@ public class CashCardController {
 
         return ResponseEntity.created(locationSavedCashCard).build(); //return 201 and location
     }
+
+    @PutMapping("/{requestedId}")
+    private ResponseEntity<Void> putCashCard(@PathVariable Long requestedId,
+                                             @RequestBody CashCardDTO cashCardUpdateDTO) {
+        Optional<CashCard> cashCard = getCashCardById(requestedId);
+        if (cashCard.isPresent()) {
+            CashCard updatedCashCard = new CashCard(requestedId, cashCardUpdateDTO.getAmount(),
+                    cashCardUpdateDTO.getOwner());
+            cashCardRepository.save(updatedCashCard);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    @DeleteMapping("/{id}")
+    private ResponseEntity<Void> deleteCashCard(@PathVariable Long id) {
+
+        Optional<CashCard> cashCard = getCashCardById(id);
+        if (cashCard.isPresent()) {
+            cashCardRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
 }
