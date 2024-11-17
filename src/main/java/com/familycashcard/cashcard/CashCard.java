@@ -22,6 +22,11 @@ public class CashCard {
         this.owner = owner;
     }
 
+    public CashCard(Double amount, String owner) {
+        this.amount = amount;
+        this.owner = owner;
+    }
+
     public Long getId() {
         return id;
     }
