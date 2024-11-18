@@ -1,11 +1,14 @@
 package com.familycashcard.cashcard;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -19,7 +22,7 @@ public class CashCardController {
     }
 
     @GetMapping()
-    public ResponseEntity<List<CashCard>> findAll(){
+    public ResponseEntity<Iterable<CashCard>> findAll(Pageable pageable){
         return ResponseEntity.ok(cashCardRepository.findAll());
     }
 
@@ -34,9 +37,13 @@ public class CashCardController {
     }
 
     @GetMapping("/getcards/{owner}")
-    private ResponseEntity<List<CashCard>> findByOwner(@PathVariable String owner) {
-        List<CashCard> allCards = cashCardRepository.findAllByOwner(owner);
-        return ResponseEntity.ok(allCards);
+    private ResponseEntity<Page<CashCard>> findByOwner(@PathVariable String owner, Pageable pageable) {
+        Page<CashCard> allCardsByOwner = cashCardRepository.findAllByOwner(owner, PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                pageable.getSortOr(Sort.by(Sort.DEFAULT_DIRECTION, "id"))
+        ));
+        return ResponseEntity.ok(allCardsByOwner);
     }
 
     @PostMapping
