@@ -20,3 +20,16 @@ INSERT INTO cashcards(amount, owner) VALUES (13.6, 'Quinn');
 INSERT INTO cashcards(amount, owner) VALUES (18.2, 'Rita');
 INSERT INTO cashcards(amount, owner) VALUES (24.9, 'Sam');
 INSERT INTO cashcards(amount, owner) VALUES (29.3, 'Clara');
+
+INSERT INTO users (name, email, username, password, active) VALUES
+('Alice Silva', 'alice.silva@example.com', 'alice.silva', 'password123', true),
+('João Santos', 'João.santos@example.com', 'joao.santos', 'password123', true),
+('Carla Oliveira', 'carla.oliveira@example.com', 'carla.oliveira', 'password123', false),
+('Diego Costa', 'diego.costa@example.com', 'diego.costa', 'password123', true),
+('Eduarda Lima', 'eduarda.lima@example.com', 'eduarda.lima', 'password123', false),
+('Fernando Almeida', 'fernando.almeida@example.com', 'fernando.almeida', 'password123', true),
+('Gabriela Melo', 'gabriela.melo@example.com', 'gabriela.melo', 'password123', false),
+('Henrique Pereira', 'henrique.pereira@example.com', 'henrique.pereira', 'password123', true),
+('Isabela Rocha', 'isabela.rocha@example.com', 'isabela.rocha', 'password123', true),
+('João Souza', 'joao.souza@example.com', 'joao.souza', 'password123', false);
+

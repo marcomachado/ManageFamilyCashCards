@@ -2,6 +2,7 @@ package com.familycashcard;
 
 import com.familycashcard.cashcard.CashCard;
 import com.familycashcard.cashcard.CashCardDTO;
+import com.familycashcard.user.User;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.DocumentContext;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class CashCardTest {
+public class UserTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -37,53 +38,55 @@ public class CashCardTest {
     private ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("should return OK for endpoint cashcards'")
+    @DisplayName("should return OK for endpoint users'")
     void t1() throws Exception {
-        mockMvc.perform(get("/cashcards"))
+        mockMvc.perform(get("/users"))
                 .andExpect(status().isOk());
     }
 
     @Test
-    @DisplayName("should return a list of cash cards with 22 cards")
+    @DisplayName("should return a list of users with size = 10")
     void t2() throws Exception {
-        mockMvc.perform(get("/cashcards"))
+        mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(22)));
+                .andExpect(jsonPath("$", hasSize(10)));
     }
 
     @Test
-    @DisplayName("should return cash card with id 1")
+    @DisplayName("should return user with id 1")
     void t3() throws Exception {
-        MvcResult result = mockMvc.perform(get("/cashcards/1"))
+        MvcResult result = mockMvc.perform(get("/users/1"))
                 .andExpect(status().isOk()).andReturn();
 
         String json = result.getResponse().getContentAsString();
-        CashCard cashCard = objectMapper.readValue(json, CashCard.class);
+        User recoveredUser = objectMapper.readValue(json, User.class);
 
-        assertNotNull(cashCard);
-        assertEquals(1L, cashCard.getId());
-        assertEquals(11.2, cashCard.getAmount());
-        assertEquals("Mark", cashCard.getOwner());
+        assertNotNull(recoveredUser);
+        assertEquals(1L, recoveredUser.getId());
+        assertEquals("Alice Silva", recoveredUser.getName());
+        assertEquals("alice.silva@example.com", recoveredUser.getEmail());
+        assertEquals("alice.silva", recoveredUser.getUsername());
+        assertEquals("password123", recoveredUser.getPassword());
+        assertTrue(recoveredUser.isActive());
     }
 
     @Test
-    @DisplayName("should return not found cash card with id 99")
+    @DisplayName("should return not found user with id 99")
     void t4() throws Exception {
-        mockMvc.perform(get("/cashcards/99"))
+        mockMvc.perform(get("/users/99"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
-    @DisplayName("should return 3 cash cards belonging to 'Clara'")
+    @DisplayName("should return 2 users with name 'joão'")
     void t5() throws Exception {
-        MvcResult result = mockMvc.perform(get("/cashcards/getcards/Clara"))
+        MvcResult result = mockMvc.perform(get("/users/getusers/joão"))
                 .andExpect(status().isOk()).andReturn();
 
         String json = result.getResponse().getContentAsString();
-        DocumentContext documentContext = JsonPath.parse(json);
+        List<CashCard> contentList = objectMapper.readValue(json, new TypeReference<>(){});
 
-        Integer numberOfElements = documentContext.read("$.numberOfElements", Integer.class);
-        assertThat(numberOfElements).isEqualTo(3);
+        assertEquals(2, contentList.size());
     }
 
     @Test
@@ -91,14 +94,14 @@ public class CashCardTest {
     void t6() throws Exception {
         var newCashCard = new CashCardDTO(121D, "Marco");
 
-        mockMvc.perform(post("/cashcards")
+        mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newCashCard))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", containsString("/cashcards/23")));
+                .andExpect(header().string("Location", containsString("/users/23")));
 
-        MvcResult result = mockMvc.perform(get("/cashcards/23"))
+        MvcResult result = mockMvc.perform(get("/users/23"))
                 .andExpect(status().isOk()).andReturn();
 
         String json = result.getResponse().getContentAsString();
@@ -116,13 +119,13 @@ public class CashCardTest {
         var oldCashCard = new CashCardDTO(121D, "Marco");
         var newCashCard = new CashCardDTO(23.23, "Mark Zuck");
 
-        mockMvc.perform(put("/cashcards/23")
+        mockMvc.perform(put("/users/23")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newCashCard))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
-        MvcResult result = mockMvc.perform(get("/cashcards/23"))
+        MvcResult result = mockMvc.perform(get("/users/23"))
                 .andExpect(status().isOk()).andReturn();
 
         String json = result.getResponse().getContentAsString();
@@ -142,7 +145,7 @@ public class CashCardTest {
     void t9() throws Exception {
         var newCashCard = new CashCardDTO(23.23, "Mark Zuck");
 
-        mockMvc.perform(put("/cashcards/99")
+        mockMvc.perform(put("/users/99")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newCashCard))
                         .accept(MediaType.APPLICATION_JSON))
@@ -153,24 +156,24 @@ public class CashCardTest {
     @DisplayName("should delete cash card with id 23")
     void t10() throws Exception {
 
-        mockMvc.perform(delete("/cashcards/23"))
+        mockMvc.perform(delete("/users/23"))
                 .andExpect(status().isNoContent());
 
-        mockMvc.perform(get("/cashcards/23"))
+        mockMvc.perform(get("/users/23"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("should not delete cash card with id 99 - not exists - and return not found")
     void t11() throws Exception {
-        mockMvc.perform(delete("/cashcards/99"))
+        mockMvc.perform(delete("/users/99"))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     @DisplayName("should return 3 cash cards belonging to 'Clara; result ordered by default=ID'")
     void t12() throws Exception {
-        MvcResult result = mockMvc.perform(get("/cashcards/getcards/Clara"))
+        MvcResult result = mockMvc.perform(get("/users/getcards/Clara"))
                 .andExpect(status().isOk()).andReturn();
 
         String json = result.getResponse().getContentAsString();
@@ -186,7 +189,7 @@ public class CashCardTest {
     @Test
     @DisplayName("should return a page with 2 cash card belonging to 'Clara' ordered by with amount desc")
     void t13() throws Exception {
-        MvcResult result = mockMvc.perform(get("/cashcards/getcards/Clara?page=0&size=2&sort=amount,desc"))
+        MvcResult result = mockMvc.perform(get("/users/getcards/Clara?page=0&size=2&sort=amount,desc"))
                 .andExpect(status().isOk()).andReturn();
 
         String json = result.getResponse().getContentAsString();
@@ -205,7 +208,7 @@ public class CashCardTest {
     @Test
     @DisplayName("should return second page with 1 cash card belonging to 'Clara' with lowest amount")
     void t14() throws Exception {
-        MvcResult result = mockMvc.perform(get("/cashcards/getcards/Clara?page=1&size=2&sort=amount,desc"))
+        MvcResult result = mockMvc.perform(get("/users/getcards/Clara?page=1&size=2&sort=amount,desc"))
                 .andExpect(status().isOk()).andReturn();
 
         String json = result.getResponse().getContentAsString();
