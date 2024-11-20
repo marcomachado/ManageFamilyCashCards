@@ -3,6 +3,7 @@ package com.familycashcard;
 import com.familycashcard.cashcard.CashCard;
 import com.familycashcard.cashcard.CashCardDTO;
 import com.familycashcard.user.User;
+import com.familycashcard.user.UserDTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.DocumentContext;
@@ -90,65 +91,69 @@ public class UserTest {
     }
 
     @Test
-    @DisplayName("should create a new cash card with ID=23")
+    @DisplayName("should create a user card with ID=11")
     void t6() throws Exception {
-        var newCashCard = new CashCardDTO(121D, "Marco");
+        var newUserDTO = new UserDTO("name", "email@email.com", "username", "password");
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newCashCard))
+                        .content(objectMapper.writeValueAsString(newUserDTO))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", containsString("/users/23")));
+                .andExpect(header().string("Location", containsString("/users/11")));
 
-        MvcResult result = mockMvc.perform(get("/users/23"))
+        MvcResult result = mockMvc.perform(get("/users/11"))
                 .andExpect(status().isOk()).andReturn();
 
         String json = result.getResponse().getContentAsString();
-        CashCard cashCard = objectMapper.readValue(json, CashCard.class);
+        User userFromDB = objectMapper.readValue(json, User.class);
 
-        assertNotNull(cashCard);
-        assertEquals(23L, cashCard.getId());
-        assertEquals(121, cashCard.getAmount());
-        assertEquals("Marco", cashCard.getOwner());
+        User newUser = newUserDTO.convertToUser();
+        newUser.setId(11L);
+        newUser.setActive(false);
+
+        assertNotNull(userFromDB);
+        assertEquals(newUser, userFromDB);
     }
 
     @Test
-    @DisplayName("should update cash card with id 23")
-    void t8() throws Exception {
-        var oldCashCard = new CashCardDTO(121D, "Marco");
-        var newCashCard = new CashCardDTO(23.23, "Mark Zuck");
+    @DisplayName("should update user with id 11")
+    void t7() throws Exception {
+        var newUserDTO = new UserDTO("name name", "email_name@email.com",
+                "username.user", "password.pass", true);
 
-        mockMvc.perform(put("/users/23")
+        mockMvc.perform(put("/users/11")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newCashCard))
+                        .content(objectMapper.writeValueAsString(newUserDTO))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
-        MvcResult result = mockMvc.perform(get("/users/23"))
+        MvcResult result = mockMvc.perform(get("/users/11"))
                 .andExpect(status().isOk()).andReturn();
 
         String json = result.getResponse().getContentAsString();
-        CashCard cashCard = objectMapper.readValue(json, CashCard.class);
+        User userFromBD = objectMapper.readValue(json, User.class);
 
-        assertNotNull(cashCard);
-        assertEquals(23, cashCard.getId());
-        assertEquals(23.23, cashCard.getAmount());
-        assertEquals("Mark Zuck", cashCard.getOwner());
+        User newUser = newUserDTO.convertToUser();
+        newUser.setId(11L);
 
-        assertNotEquals(oldCashCard.getAmount(), cashCard.getAmount());
-        assertNotEquals(oldCashCard.getOwner(), cashCard.getOwner());
+        assertNotNull(userFromBD);
+        assertEquals(newUser, userFromBD);
     }
 
     @Test
-    @DisplayName("should not update cash card with id 99 - not exists - and return not found error")
-    void t9() throws Exception {
-        var newCashCard = new CashCardDTO(23.23, "Mark Zuck");
+    @DisplayName("should not update user with id 99 - not exists - and return not found error")
+    void t8() throws Exception {
+        var newUserDTO = new UserDTO("name name", "email_name@email.com",
+                "username.user", "password.pass", true);
 
         mockMvc.perform(put("/users/99")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newCashCard))
+                        .content(objectMapper.writeValueAsString(newUserDTO))
                         .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        mockMvc.perform(get("/users/11"))
                 .andExpect(status().isNotFound());
     }
 

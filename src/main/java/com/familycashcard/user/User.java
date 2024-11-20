@@ -1,9 +1,6 @@
 package com.familycashcard.user;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -19,9 +16,10 @@ public class User {
     @NotBlank @Size(min = 1, max = 100)
     private String name;
     @Email @NotBlank
+    @Column(unique = true)
     private String email;
     @NotBlank @Size(min = 5, max = 20)
-    @UniqueElements
+    @Column(unique = true)
     private String username;
     @NotBlank @Size(min = 5, max = 40)
     private String password;
@@ -31,11 +29,27 @@ public class User {
     public User() {
     }
 
+    public User(String name, String email, String username, String password) {
+        this.name = name;
+        this.email = email;
+        this.username = username;
+        this.password = password;
+        this.active = false;
+    }
+
     public User(String name, String email, String username, String password, boolean active) {
         this.name = name;
         this.email = email;
         this.username = username;
         this.password = password;
+        this.active = active;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public void setActive(boolean active) {
         this.active = active;
     }
 
